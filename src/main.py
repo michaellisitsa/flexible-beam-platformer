@@ -40,10 +40,25 @@ def get_deflection(location):
     # Point loads need a node to be created first.
     intermediate_loc = location * u.mm
     intermediate_vertex = Vertex(intermediate_loc.to_base_units().magnitude, 0)
-    element_id = ss.add_element(location=(start_vertex, intermediate_vertex))
-    element_id2 = ss.add_element(location=(intermediate_vertex, end_vertex))
-    # ss.insert_node(element_id=element_id, location=intermediate_vertex)
-    intermediate_node = ss.find_node_id(intermediate_vertex)
+    # Add a cantilever
+    cant_beam_loc = 3000 * u.mm
+    cant_vertex = Vertex(cant_beam_loc.to_base_units().magnitude, 0)
+    if intermediate_vertex.x < end_vertex.x:
+        # print("Interior Span")
+        element_id = ss.add_element(location=(start_vertex, intermediate_vertex))
+        element_id2 = ss.add_element(location=(intermediate_vertex, end_vertex))
+
+        element_id3 = ss.add_element(location=(end_vertex, cant_vertex))
+
+        # ss.insert_node(element_id=element_id, location=intermediate_vertex)
+        intermediate_node = ss.find_node_id(intermediate_vertex)
+    elif intermediate_vertex.x > end_vertex.x:
+        element_id = ss.add_element(location=(start_vertex, end_vertex))
+        element_id2 = ss.add_element(location=(end_vertex, intermediate_vertex))
+        element_id3 = ss.add_element(location=(intermediate_vertex, cant_vertex))
+        intermediate_node = ss.find_node_id(intermediate_vertex)
+    else:
+        return None
 
     # 100kg man
     man = 100 * u.kg * 9.81 * u.N / u.kg
@@ -53,10 +68,11 @@ def get_deflection(location):
     # Get the assigned nodes and assign supports
     start_node = ss.find_node_id(start_vertex)
     end_node = ss.find_node_id(end_vertex)
+    cant_node = ss.find_node_id(cant_vertex)
 
     if start_node and end_node:
-        ss.add_support_hinged(node_id=1)
-        ss.add_support_roll(node_id=3)
+        ss.add_support_hinged(node_id=start_node)
+        ss.add_support_roll(node_id=end_node)
 
     ss.solve()
 
@@ -94,11 +110,22 @@ def get_deflection(location):
         return positions
 
     intermediate_node_offset = ss.get_node_displacements(intermediate_node)["uy"]
+    # TODO: Fix so that the node is always on the element in question.
+    # Currently the intermediate node may be outside of the element 1.
     position1 = get_element_position(1, start_node_offset=intermediate_node_offset)
-    xoffset = position1[-1][0]
+    position1_xoffset = position1[-1][0]
+    position2 = get_element_position(
+        2, xoffset=position1_xoffset, end_node_offset=intermediate_node_offset
+    )
+    position2_xoffset = position2[-1][0]
     # position2 = get_element_position(2, xoffset=xoffset)
-    return position1 + get_element_position(
-        2, xoffset, end_node_offset=intermediate_node_offset
+    cant_node_offset = ss.get_node_displacements(cant_node)["uy"]
+    return (
+        position1
+        + position2
+        + get_element_position(
+            3, xoffset=position2_xoffset, start_node_offset=cant_node_offset
+        )
     )
 
 
@@ -145,7 +172,8 @@ while running == True:
         (255, 0, 0),
         (-man_width // 2 + man_location / 1000 * 80, 50, man_width, man_width),
     )
-    pygame.draw.aalines(display_surface, (0, 0, 0), False, positions)
+    if positions:
+        pygame.draw.aalines(display_surface, (0, 0, 0), False, positions)
     display_surface.blit(update_fps(), (10, 0))
     # pygame.draw.aalines(
     #     display_surface, (0, 0, 0), False, [[20, 50], [20, 100], [50, 100]]

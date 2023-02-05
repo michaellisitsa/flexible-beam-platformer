@@ -7,11 +7,24 @@ import pint
 import numpy as np
 
 u = pint.UnitRegistry()
-print(dir(u.sys))
 
 
 def get_deflection(location):
+    """
+    Extract the deflections and element locations as a nested list along the beam in a matrix.
+    By default the post processing deflections do not list their locations.
+    TODO: what is the object here? an element. An element has a deflection array. But what does a deflection mean?
+    A deflection is an object that has a relationship to an element, and a position along that element.
+    It might also have a factored position on an element, or a distance from either end.
+    A deflection may belong to an ElementDeflections class, whose responsibility is to keep track of all the deflections,
+    as well as have methods to return a dictionary of local (or global) positions and respective deflections.
+    Another method might be to return a flattened array of global positions and respective deflections going from left-to-right or visa versa.
 
+    Alternative way to think is about a proxy pattern.
+    The element_map already exists with all its deflections. We just want to
+    """
+
+    # Set up external dimensions of structure
     # Maintain a reasonable internal dimension for members.
     # These will be transformed to pixel coordinates in pygame.
     # To avoid losing reference to the material and section constants
@@ -34,33 +47,38 @@ def get_deflection(location):
         EI=I_shs.to_base_units().magnitude * E_steel.to_base_units().magnitude,
         EA=E_steel.to_base_units().magnitude * A_shs.to_base_units().magnitude,
     )
-    # element_id = ss.add_element(location=(start_vertex, ))
+
+    """
+    Set up location of point load and add cantilever
+    Ideally cantilever should be defined before
+    """
 
     # Heavy man at location
     # Point loads need a node to be created first.
     intermediate_loc = location * u.mm
     intermediate_vertex = Vertex(intermediate_loc.to_base_units().magnitude, 0)
+
     # Add a cantilever
     cant_beam_loc = 3000 * u.mm
     cant_vertex = Vertex(cant_beam_loc.to_base_units().magnitude, 0)
+
+    """Redefine all geometry to include the extra node"""
     if intermediate_vertex.x < end_vertex.x:
-        # print("Interior Span")
-        element_id = ss.add_element(location=(start_vertex, intermediate_vertex))
-        element_id2 = ss.add_element(location=(intermediate_vertex, end_vertex))
+        ss.add_element(location=(start_vertex, intermediate_vertex))
+        ss.add_element(location=(intermediate_vertex, end_vertex))
 
-        element_id3 = ss.add_element(location=(end_vertex, cant_vertex))
+        ss.add_element(location=(end_vertex, cant_vertex))
 
-        # ss.insert_node(element_id=element_id, location=intermediate_vertex)
         intermediate_node = ss.find_node_id(intermediate_vertex)
     elif intermediate_vertex.x > end_vertex.x:
-        element_id = ss.add_element(location=(start_vertex, end_vertex))
-        element_id2 = ss.add_element(location=(end_vertex, intermediate_vertex))
-        element_id3 = ss.add_element(location=(intermediate_vertex, cant_vertex))
+        ss.add_element(location=(start_vertex, end_vertex))
+        ss.add_element(location=(end_vertex, intermediate_vertex))
+        ss.add_element(location=(intermediate_vertex, cant_vertex))
         intermediate_node = ss.find_node_id(intermediate_vertex)
     else:
         return None
 
-    # 100kg man
+    """Assign a point load to the extra node"""
     man = 100 * u.kg * 9.81 * u.N / u.kg
 
     ss.point_load(node_id=intermediate_node, Fy=man.to_base_units().magnitude)
@@ -76,60 +94,16 @@ def get_deflection(location):
 
     ss.solve()
 
-    def get_element_position(
-        element_id, xoffset=0, start_node_offset=None, end_node_offset=None
-    ):
-        element = ss.element_map[element_id]
-        element_deflections = element.deflection
-        element_spacing = (element.vertex_2.x - element.vertex_1.x) / mesh
-        positions = []
-        for idx, loc in enumerate(range(mesh)):
-            if start_node_offset:
-                current_y_offset = start_node_offset * (loc + 1) / mesh
-                positions.append(
-                    [
-                        xoffset + 80 * (loc * element_spacing + element_spacing / 2),
-                        100 - 5000 * (-current_y_offset + element_deflections[idx]),
-                    ]
-                )
-            elif end_node_offset:
-                current_y_offset = end_node_offset * (mesh - loc) / mesh
-                positions.append(
-                    [
-                        xoffset + 80 * (loc * element_spacing + element_spacing / 2),
-                        100 - 5000 * (-current_y_offset + element_deflections[idx]),
-                    ]
-                )
-            else:
-                positions.append(
-                    [
-                        xoffset + 80 * (loc * element_spacing + element_spacing / 2),
-                        -5000 * (element_deflections[idx]),
-                    ]
-                )
-        return positions
+    # Use internal plotting method
+    deflections = ss.plot_values.displacements(factor=1000, linear=False)
+    deflections_transposed = np.transpose(np.array(deflections)).tolist()
 
-    intermediate_node_offset = ss.get_node_displacements(intermediate_node)["uy"]
-    # TODO: Fix so that the node is always on the element in question.
-    # Currently the intermediate node may be outside of the element 1.
-    position1 = get_element_position(1, start_node_offset=intermediate_node_offset)
-    position1_xoffset = position1[-1][0]
-    position2 = get_element_position(
-        2, xoffset=position1_xoffset, end_node_offset=intermediate_node_offset
-    )
-    position2_xoffset = position2[-1][0]
-    # position2 = get_element_position(2, xoffset=xoffset)
-    cant_node_offset = ss.get_node_displacements(cant_node)["uy"]
-    return (
-        position1
-        + position2
-        + get_element_position(
-            3, xoffset=position2_xoffset, start_node_offset=cant_node_offset
-        )
-    )
+    for deflection in deflections_transposed:
+        deflection[0] = 80 + deflection[0] * 60
+        deflection[1] = 100 + deflection[1]
+    return deflections_transposed
 
 
-# element_positions =
 pygame.init()
 font = pygame.font.SysFont(None, 24)
 
@@ -155,9 +129,6 @@ while running == True:
         pygame.key.start_text_input()
         if event.type == pygame.QUIT:
             running = False
-        # if event.type == pygame.KEYDOWN:
-        #     if event.key == pygame.K_RIGHT:
-        #         man_location += 10
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT]:
         man_location -= 10
@@ -170,17 +141,10 @@ while running == True:
     pygame.draw.rect(
         display_surface,
         (255, 0, 0),
-        (-man_width // 2 + man_location / 1000 * 80, 50, man_width, man_width),
+        (-man_width // 2 + man_location / 1000 * 100, 50, man_width, man_width),
     )
     if positions:
-        pygame.draw.aalines(display_surface, (0, 0, 0), False, positions)
+        pygame.draw.lines(display_surface, (0, 0, 0), False, positions, width=10)
     display_surface.blit(update_fps(), (10, 0))
-    # pygame.draw.aalines(
-    #     display_surface, (0, 0, 0), False, [[20, 50], [20, 100], [50, 100]]
-    # )
-    # pygame.draw.aaline(display_surface, (60, 179, 113), [0, 50], [50, 80], True)
-    # pygame.draw.lines(
-    #     display_surface, "black", False, [[0, 80], [50, 90], [200, 80], [220, 30]], 5
-    # )
     pygame.display.update()
 pygame.quit()

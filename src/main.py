@@ -5,6 +5,7 @@ from sys import exit
 from anastruct import Vertex
 import pint
 import numpy as np
+from src.Player import Player
 
 u = pint.UnitRegistry()
 
@@ -121,6 +122,11 @@ FPS = 60
 clock = pygame.time.Clock()
 
 man_location = 500
+
+# Create player group and object
+my_player_group = pygame.sprite.Group()  # type: ignore
+my_player = Player(display_surface.get_width() // 2, display_surface.get_height() // 2)
+my_player_group.add(my_player)  # type: ignore
 
 running = True
 while running == True:

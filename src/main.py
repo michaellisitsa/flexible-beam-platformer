@@ -1,16 +1,16 @@
-import time
 import pygame
-from anastruct import SystemElements
-from sys import exit
+from anastruct import SystemElements  # pyright: reportMissingTypeStubs=false
 from anastruct import Vertex
 import pint
 import numpy as np
+from src.PlatformTile import PlatformTile
+from src.assets.tile_map import tile_map
 from src.Player import Player
 
 u = pint.UnitRegistry()
 
 
-def get_deflection(location):
+def get_deflection(location: float):
     """
     Extract the deflections and element locations as a nested list along the beam in a matrix.
     By default the post processing deflections do not list their locations.
@@ -128,6 +128,22 @@ my_player_group = pygame.sprite.Group()  # type: ignore
 my_player = Player(display_surface.get_width() // 2, display_surface.get_height() // 2)
 my_player_group.add(my_player)  # type: ignore
 
+# Create sprite groups
+main_tile_group = pygame.sprite.Group()  # type: ignore
+# platform_tile_group = pygame.sprite.Group()
+
+# Create individual tile objects from the tile map
+# Loop through the 20 lists in tile_map (i moves down the map)
+for i in range(len(tile_map)):
+    for j in range(len(tile_map[i])):
+        match tile_map[i][j]:
+            case 1:
+                PlatformTile(j * 32, i * 32, 1, main_tile_group)
+            case 2:
+                PlatformTile(j * 32, i * 32, 1, main_tile_group)
+            case _:
+                pass
+
 running = True
 while running == True:
     clock.tick(FPS)
@@ -151,6 +167,11 @@ while running == True:
     )
     if positions:
         pygame.draw.lines(display_surface, (0, 0, 0), False, positions, width=10)
+
+    # update and draw sprite groups
+    my_player_group.update(display_surface)
+    my_player_group.draw(display_surface)
+    main_tile_group.draw(display_surface)
     display_surface.blit(update_fps(), (10, 0))
     pygame.display.update()
 pygame.quit()

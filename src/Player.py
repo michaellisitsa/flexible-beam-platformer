@@ -9,6 +9,7 @@ class Player(pygame.sprite.Sprite):
     # Kinematic constants
     HORIZONTAL_ACCELERATION = 2
     HORIZONTAL_FRICTION = 0.15
+    VERTICAL_ACCELERATION = 0.1  # Gravity
 
     def __init__(self, x: int, y: int):
         """Init the player"""
@@ -22,13 +23,13 @@ class Player(pygame.sprite.Sprite):
         # Kinematics vectors (first value is the x, second value is the y)
         self.position = Player.vector(x, y)
         self.velocity = Player.vector(0, 0)
-        self.acceleration = Player.vector(0, 0)
+        self.acceleration = Player.vector(0, Player.VERTICAL_ACCELERATION)
 
     def update(self, *args: pygame.Surface, **kwargs: None):
         """Update the player"""
         surface: pygame.Surface = args[0]
         # Set the acceleration vector to zero
-        self.acceleration = Player.vector(0, 0)
+        self.acceleration.x = 0
 
         keys = pygame.key.get_pressed()
         # If the user is pressing a key,
@@ -49,4 +50,4 @@ class Player(pygame.sprite.Sprite):
         self.position += (
             self.velocity + 0.5 * self.acceleration
         )  # d = vt + 1/2*a*t^2 (assume t is unit value)
-        self.rect.left = int(self.position.x)
+        self.rect.bottomleft = (int(self.position.x), int(self.position.y))

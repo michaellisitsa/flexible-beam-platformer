@@ -142,7 +142,7 @@ for i in range(len(tile_map)):
             case 2:
                 PlatformTile(j * 32, i * 32, 1, main_tile_group)
             case 4:
-                my_player = Player(j * 32, i * 32 + 32)
+                my_player = Player(j * 32, i * 32 + 32, main_tile_group)
                 my_player_group.add(my_player)  # type: ignore
             case _:
                 pass

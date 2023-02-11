@@ -11,7 +11,7 @@ class Player(pygame.sprite.Sprite):
     HORIZONTAL_FRICTION = 0.15
     VERTICAL_ACCELERATION = 0.1  # Gravity
 
-    def __init__(self, x: int, y: int):
+    def __init__(self, x: int, y: int, platform_tile_group: pygame.sprite.Group):  # type: ignore
         """Init the player"""
         super().__init__()
         self.image = pygame.image.load("src/assets/green_monster.png")
@@ -24,6 +24,7 @@ class Player(pygame.sprite.Sprite):
         self.position = Player.vector(x, y)
         self.velocity = Player.vector(0, 0)
         self.acceleration = Player.vector(0, Player.VERTICAL_ACCELERATION)
+        self.platform_tiles = platform_tile_group  # type: ignore
 
     def update(self, *args: pygame.Surface, **kwargs: None):
         """Update the player"""
@@ -51,3 +52,11 @@ class Player(pygame.sprite.Sprite):
             self.velocity + 0.5 * self.acceleration
         )  # d = vt + 1/2*a*t^2 (assume t is unit value)
         self.rect.bottomleft = (int(self.position.x), int(self.position.y))
+
+        # check for collisions with platform tiles
+        collided_platforms = pygame.sprite.spritecollide(  # type:ignore
+            self, self.platform_tiles, False  # type:ignore
+        )
+        if collided_platforms:
+            self.position.y = collided_platforms[0].rect.top  # type:ignore
+            self.velocity.y = 0

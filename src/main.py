@@ -7,6 +7,7 @@ from src.PlatformTile import PlatformTile
 from src.assets.tile_map import tile_map
 from src.Player import Player
 
+
 u = pint.UnitRegistry()
 
 
@@ -115,7 +116,7 @@ def update_fps():
     return fps_text
 
 
-display_surface = pygame.display.set_mode([400, 300])
+display_surface = pygame.display.set_mode([960, 640])
 
 # Set FPS and clock
 FPS = 60

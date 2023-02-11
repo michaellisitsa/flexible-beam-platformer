@@ -125,8 +125,7 @@ man_location = 500
 
 # Create player group and object
 my_player_group = pygame.sprite.Group()  # type: ignore
-my_player = Player(display_surface.get_width() // 2, display_surface.get_height() // 2)
-my_player_group.add(my_player)  # type: ignore
+
 
 # Create sprite groups
 main_tile_group = pygame.sprite.Group()  # type: ignore
@@ -141,6 +140,9 @@ for i in range(len(tile_map)):
                 PlatformTile(j * 32, i * 32, 1, main_tile_group)
             case 2:
                 PlatformTile(j * 32, i * 32, 1, main_tile_group)
+            case 4:
+                my_player = Player(j * 32, i * 32 + 32)
+                my_player_group.add(my_player)  # type: ignore
             case _:
                 pass
 

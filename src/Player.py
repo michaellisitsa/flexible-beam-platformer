@@ -9,7 +9,7 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.image = pygame.image.load("src/assets/green_monster.png")
         self.rect = self.image.get_rect()
-        self.rect.topleft = (x, y)
+        self.rect.bottomleft = (x, y)
 
         self.lives = 5
         self.velocity = 8
@@ -26,8 +26,3 @@ class Player(pygame.sprite.Sprite):
             self.rect.y -= self.velocity
         if keys[pygame.K_DOWN] and self.rect.bottom < surface.get_height():
             self.rect.y += self.velocity
-
-    def reset(self, surface: pygame.Surface):
-        """Resets the player's position"""
-        self.rect.centerx = surface.get_width() // 2
-        self.rect.centery = surface.get_height()

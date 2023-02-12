@@ -3,10 +3,11 @@ from anastruct import SystemElements  # pyright: reportMissingTypeStubs=false
 from anastruct import Vertex
 import pint
 import numpy as np
+from scipy import ndimage
+
 from src.PlatformTile import PlatformTile
 from src.assets.tile_map import tile_map
 from src.Player import Player
-
 
 u = pint.UnitRegistry()
 
@@ -141,11 +142,43 @@ for i in range(len(tile_map)):
                 PlatformTile(j * 32, i * 32, 1, main_tile_group)
             case 2:
                 PlatformTile(j * 32, i * 32, 1, main_tile_group)
-            case 4:
-                my_player = Player(j * 32, i * 32 + 32, main_tile_group)
-                my_player_group.add(my_player)  # type: ignore
             case _:
                 pass
+
+
+# Identify connected components in horizontal axis only (platforms)
+
+# Scipy Footprint
+# https://docs.scipy.org/doc/scipy/tutorial/ndimage.html#filter-functions
+structuring_element = np.array([[0, 0, 0], [1, 1, 1], [0, 0, 0]])
+
+# Label each block of connected components with a different digit (same shape as original array)
+x_components, _ = ndimage.label(
+    np.array(tile_map),
+    structure=structuring_element,
+)
+# returns slices with the bounding boxes
+platforms = ndimage.find_objects(x_components)
+# fills a new array with 1 on those slices. python <class 'slice'>
+
+# This returns a tuple of slices with the (y,xß) bounds.
+# e.g. (slice(3, 4, None), slice(0, 11, None))
+#      (row_ind = 3 up to but not including 4, col_ind = 0 up to but not including 11)
+for idx, platform in enumerate(platforms):
+    y_index = platform[0].start
+    x_start_index = platform[1].start
+    x_stop_index = platform[1].stop - 1
+    # Find Player
+    if x_start_index == x_stop_index and tile_map[y_index][x_start_index] == 4:
+        my_player = Player(y_index * 32, x_start_index * 32 + 32, main_tile_group)
+        my_player_group.add(my_player)  # type: ignore
+    else:
+        # TODO: Create FlexiblePlatformSprite
+        pass
+    print(
+        f"Platform {idx}: on row idx: {y_index} and col range: {x_start_index}, {x_stop_index}"
+    )
+
 
 running = True
 while running == True:

@@ -58,5 +58,5 @@ class Player(pygame.sprite.Sprite):
             self, self.platform_tiles, False  # type:ignore
         )
         if collided_platforms:
-            self.position.y = collided_platforms[0].rect.top  # type:ignore
+            self.position.y = collided_platforms[0].rect.top + 1  # type:ignore
             self.velocity.y = 0

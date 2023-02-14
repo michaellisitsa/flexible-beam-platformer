@@ -140,9 +140,7 @@ flexible_platform_group = pygame.sprite.Group()  # type: ignore
 for i in range(len(tile_map)):
     for j in range(len(tile_map[i])):
         match tile_map[i][j]:
-            case 1:
-                PlatformTile(j * 32, i * 32, 1, main_tile_group)
-            case 2:
+            case 5:
                 PlatformTile(j * 32, i * 32, 1, main_tile_group)
             case _:
                 pass
@@ -173,8 +171,16 @@ for idx, platform in enumerate(platforms):
     x_stop_index: int = platform[1].stop - 1
     # Find Player
     if x_start_index == x_stop_index and tile_map[y_index][x_start_index] == 4:
-        my_player = Player(y_index * 32, x_start_index * 32 + 32, main_tile_group)
+        my_player = Player(
+            x_start_index * 32 + 32,
+            y_index * 32,
+            main_tile_group,
+            flexible_platform_group=flexible_platform_group,
+        )
         my_player_group.add(my_player)  # type: ignore
+    elif tile_map[y_index][x_start_index] == 5:
+        # This is a rigid platform, so has been created elsewhere
+        pass
     else:
         my_platform = FlexiblePlatform(y_index, x_start_index, x_stop_index)
         flexible_platform_group.add(my_platform)  # type: ignore

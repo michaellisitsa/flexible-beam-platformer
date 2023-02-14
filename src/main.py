@@ -5,6 +5,7 @@ import pint
 import numpy as np
 from scipy import ndimage
 
+from src.FlexiblePlatform import FlexiblePlatform
 from src.PlatformTile import PlatformTile
 from src.assets.tile_map import tile_map
 from src.Player import Player
@@ -132,6 +133,7 @@ my_player_group = pygame.sprite.Group()  # type: ignore
 # Create sprite groups
 main_tile_group = pygame.sprite.Group()  # type: ignore
 # platform_tile_group = pygame.sprite.Group()
+flexible_platform_group = pygame.sprite.Group()  # type: ignore
 
 # Create individual tile objects from the tile map
 # Loop through the 20 lists in tile_map (i moves down the map)
@@ -159,22 +161,23 @@ x_components, _ = ndimage.label(
 )
 # returns slices with the bounding boxes
 platforms = ndimage.find_objects(x_components)
+
 # fills a new array with 1 on those slices. python <class 'slice'>
 
 # This returns a tuple of slices with the (y,xß) bounds.
 # e.g. (slice(3, 4, None), slice(0, 11, None))
 #      (row_ind = 3 up to but not including 4, col_ind = 0 up to but not including 11)
 for idx, platform in enumerate(platforms):
-    y_index = platform[0].start
-    x_start_index = platform[1].start
-    x_stop_index = platform[1].stop - 1
+    y_index: int = platform[0].start
+    x_start_index: int = platform[1].start
+    x_stop_index: int = platform[1].stop - 1
     # Find Player
     if x_start_index == x_stop_index and tile_map[y_index][x_start_index] == 4:
         my_player = Player(y_index * 32, x_start_index * 32 + 32, main_tile_group)
         my_player_group.add(my_player)  # type: ignore
     else:
-        # TODO: Create FlexiblePlatformSprite
-        pass
+        my_platform = FlexiblePlatform(y_index, x_start_index, x_stop_index)
+        flexible_platform_group.add(my_platform)  # type: ignore
     print(
         f"Platform {idx}: on row idx: {y_index} and col range: {x_start_index}, {x_stop_index}"
     )
@@ -208,6 +211,7 @@ while running == True:
     my_player_group.update(display_surface)
     my_player_group.draw(display_surface)
     main_tile_group.draw(display_surface)
+    flexible_platform_group.draw(display_surface)
     display_surface.blit(update_fps(), (10, 0))
     pygame.display.update()
 pygame.quit()

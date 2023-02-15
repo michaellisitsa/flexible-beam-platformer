@@ -2,7 +2,13 @@ import pygame
 
 
 class FlexiblePlatform(pygame.sprite.Sprite):
-    def __init__(self, y_index: int, x_start_index: int, x_stop_index: int):
+    def __init__(
+        self,
+        y_index: int,
+        x_start_index: int,
+        x_stop_index: int,
+        platform_arr: list[int],
+    ):
         super().__init__()
         self.length = (
             32 * (x_stop_index - x_start_index) + 32
@@ -10,17 +16,28 @@ class FlexiblePlatform(pygame.sprite.Sprite):
         self.image = pygame.Surface((self.length, self.length // 5))
         self.image.set_colorkey((0, 0, 0))
         self.rect = self.image.get_rect()
-        self.rect.bottomleft = (32 * x_start_index, 32 * y_index + self.length // 10)
+        self.left = x_start_index * 32
+        self.rect.bottomleft = (self.left, 32 * y_index + self.length // 10)
+
+        # Create a platform
+        self.platform_arr = platform_arr
+
+        # Generate a list of tuples with x and y positions.
+        self.locations: list[tuple[int, int]] = []
+        for idx, x in enumerate(range(x_start_index, x_stop_index + 1)):
+            self.locations.append((32 * x, platform_arr[idx]))
+
         # Draw undeflected beam
-        pygame.draw.line(
+        pygame.draw.lines(
             self.image,
             (255, 0, 0),
-            (0, self.length // 10),
-            (self.length, self.length // 10),
+            False,
+            [
+                (location[0] - self.left, self.length // 10)
+                for location in self.locations
+            ],
             width=6,
         )
-        # Define a flexible platform.
-        # Property initial platform position.
         # Property initial support positions.
         # Property section properties.
         # Doesn't need to initialize anastruct just yet.

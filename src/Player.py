@@ -1,4 +1,5 @@
 import pygame
+from bisect import bisect_left
 
 
 class Player(pygame.sprite.Sprite):
@@ -67,6 +68,29 @@ class Player(pygame.sprite.Sprite):
         if collided_flexible_platforms:
             beam_center = collided_flexible_platforms[0].rect.centery
             if beam_center <= self.position.y:
-                self.position.y = beam_center  # type:ignore
+                deflections = collided_flexible_platforms[0].update(self.position.x)
+                if deflections:
+                    deflection_index_at_player = bisect_left(
+                        [item[0] for item in deflections], self.position.x
+                    )
+                    # Cater for bisect_left returning index of the next empty index if it is off the list
+                    # prevent list index out of range errors
+                    if deflection_index_at_player == len(deflections):
+                        deflection_at_player = deflections[-1][1]
+                    else:
+                        deflection_at_player = deflections[deflection_index_at_player][
+                            1
+                        ]
+                    position_y = (
+                        beam_center
+                        + deflection_at_player
+                        - collided_flexible_platforms[0].length // 10
+                    )  # type:ignore
+                    if (
+                        deflection_at_player
+                        > collided_flexible_platforms[0].rect.height
+                    ):
+                        self.position.y = collided_flexible_platforms[0].rect.bottom
+                    else:
+                        self.position.y = position_y  # type:ignore
                 self.velocity.y = 0
-            collided_flexible_platforms[0].update(self.position.x)

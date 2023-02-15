@@ -58,6 +58,7 @@ class FlexiblePlatform(pygame.sprite.Sprite):
                 deflections,
                 width=6,
             )
+            return deflections
         except:
             # There are no forces or there was an error calculating deflection
             # Draw undeflected beam

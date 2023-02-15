@@ -182,7 +182,10 @@ for idx, platform in enumerate(platforms):
         # This is a rigid platform, so has been created elsewhere
         pass
     else:
-        my_platform = FlexiblePlatform(y_index, x_start_index, x_stop_index)
+        platform_arr: list[int] = tile_map[y_index][x_start_index : x_stop_index + 1]
+        my_platform = FlexiblePlatform(
+            y_index, x_start_index, x_stop_index, platform_arr
+        )
         flexible_platform_group.add(my_platform)  # type: ignore
     print(
         f"Platform {idx}: on row idx: {y_index} and col range: {x_start_index}, {x_stop_index}"

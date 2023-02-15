@@ -23,9 +23,9 @@ class FlexiblePlatform(pygame.sprite.Sprite):
         self.platform_arr = platform_arr
 
         # Generate a list of tuples with x and y positions.
-        self.locations: list[tuple[int, int]] = []
+        self.location_type: list[tuple[int, int]] = []
         for idx, x in enumerate(range(x_start_index, x_stop_index + 1)):
-            self.locations.append((32 * x, platform_arr[idx]))
+            self.location_type.append((32 * x, platform_arr[idx]))
 
         # Draw undeflected beam
         pygame.draw.lines(
@@ -34,13 +34,14 @@ class FlexiblePlatform(pygame.sprite.Sprite):
             False,
             [
                 (location[0] - self.left, self.length // 10)
-                for location in self.locations
+                for location in self.location_type
             ],
             width=6,
         )
         # Property initial support positions.
         # Property section properties.
         # Doesn't need to initialize anastruct just yet.
+        self.get_deflection_position(self.left + 40)
 
     def update(self, *args: pygame.Surface, **kwargs: None):
         """Update the platform"""
@@ -54,9 +55,72 @@ class FlexiblePlatform(pygame.sprite.Sprite):
     params: The position of the hero along the beam
     """
 
-    # def get_deflection_position():
-    # Called when their is a collision with the hero.
-    # Initialize anastruct and geometry based on platform position
-    # Switches out the platform for the deflected shape.
-
-    #
+    def get_deflection_position(self, player_position):
+        """Called when there is a collision with the hero.
+        Initialize anastruct and geometry based on platform position
+        Switches out the platform for the deflected shape."""
+        # Iterate over the array, including the next value.
+        # Create an element between every position
+        for location, type in self.location_type:
+            match type:
+                case 1:
+                    if location < player_position < location + 32:
+                        pygame.draw.circle(
+                            self.image,
+                            (0, 255, 0),
+                            (player_position - self.left, self.length // 10),
+                            10,
+                        )
+                    pygame.draw.circle(
+                        self.image,
+                        (0, 0, 255),
+                        (location - self.left, self.length // 10),
+                        10,
+                    )
+                    pygame.draw.circle(
+                        self.image,
+                        (0, 0, 255),
+                        (location + 32 - self.left, self.length // 10),
+                        10,
+                    )
+                case 2:
+                    triangle_base = [[10, 10], [0, 20], [20, 20]]
+                    pygame.draw.polygon(
+                        self.image,
+                        (0, 255, 255),
+                        [
+                            [location - self.left, self.length // 10 + 10],
+                            [location - self.left - 10, self.length // 10 + 20],
+                            [location - self.left + 10, self.length // 10 + 20],
+                        ],
+                        2,
+                    )
+                case 3:
+                    pygame.draw.rect(
+                        self.image,
+                        (0, 255, 255),
+                        (
+                            location - self.left,
+                            self.length // 10 - 10,
+                            10,
+                            20,
+                        ),
+                        2,
+                    )
+                case _:
+                    pass
+            # if platform_tile[1] == 1:
+        #     if platform_arr[0] < man_position < platform_arr[0] + 32:
+        #         add_element(from platform_arr[0] to man_position)
+        #         add_element(from man_position to platform_arr[0]+32)
+        #         man_node = find_node((man_position,0))
+        #         add_point_load(load on man_node)
+        #     else:
+        #         generate a normal element.
+        #
+        #     # Now make sure that if the man lands on a node, you just add the load there.
+        #     if platform_arr[0] == man_position:
+        #         man_node = find_node((platform_arr[0],0))
+        #         add_point_load(load on man_node)
+        # else if platform_arr == "2":
+        #     generate a normal element, but add a support to the start node.

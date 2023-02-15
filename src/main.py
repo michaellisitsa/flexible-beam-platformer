@@ -90,6 +90,8 @@ for idx, platform in enumerate(platforms):
         f"Platform {idx}: on row idx: {y_index} and col range: {x_start_index}, {x_stop_index}"
     )
 
+pygame.mixer.music.load("src/assets/music.wav")
+pygame.mixer.music.play(-1, 0.0)
 
 running = True
 while running == True:
@@ -98,6 +100,7 @@ while running == True:
         pygame.key.start_text_input()
         if event.type == pygame.QUIT:
             running = False
+            pygame.mixer.music.stop()
 
     display_surface.fill("white")
 

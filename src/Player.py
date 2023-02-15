@@ -27,6 +27,7 @@ class Player(pygame.sprite.Sprite):
         self.acceleration = Player.vector(0, Player.VERTICAL_ACCELERATION)
         self.platform_tiles = platform_tile_group  # type: ignore
         self.flexible_platforms = flexible_platform_group  # type: ignore
+        self.sound_1 = pygame.mixer.Sound("src/assets/sound_1.wav")
 
     def update(self, *args: pygame.Surface, **kwargs: None):
         """Update the player"""
@@ -97,4 +98,7 @@ class Player(pygame.sprite.Sprite):
                         self.position.y = collided_flexible_platforms[0].rect.bottom
                     else:
                         self.position.y = position_y  # type:ignore
+                if self.velocity.y > 1:
+                    self.sound_1.play()
+                    self.sound_1.set_volume(0.3)
                 self.velocity.y = 0

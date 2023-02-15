@@ -221,7 +221,7 @@ while running == True:
     my_player_group.update(display_surface)
     main_tile_group.draw(display_surface)
     flexible_platform_group.draw(display_surface)
-    flexible_platform_group.update(my_player.position.x)
+    # flexible_platform_group.update(my_player.position.x)
     display_surface.blit(update_fps(), (10, 0))
     pygame.display.update()
 pygame.quit()

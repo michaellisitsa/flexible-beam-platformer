@@ -69,3 +69,4 @@ class Player(pygame.sprite.Sprite):
             if beam_center <= self.position.y:
                 self.position.y = beam_center  # type:ignore
                 self.velocity.y = 0
+            collided_flexible_platforms[0].update(self.position.x)

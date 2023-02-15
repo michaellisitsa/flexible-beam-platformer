@@ -174,25 +174,14 @@ class FlexiblePlatform(pygame.sprite.Sprite):
                     pass
 
         ss.solve()
-        # Use internal plotting method
-        deflections = ss.plot_values.displacements(factor=0.005, linear=False)
+        deflections = ss.plot_values.displacements(factor=1, linear=False)
+        max_deflection = max(abs(deflections[1]))
+        # TODO: Use a formula to limit max displacements to the visible area.
+        # scale_displacements = (self.length // 10) / max_deflection
+        scale_displacements = 0.005
+
         deflections_transposed = np.transpose(np.array(deflections)).tolist()
         for deflection in deflections_transposed:
-            deflection[0] = deflection[0]
-            deflection[1] = deflection[1] + self.length // 10
+            deflection[0] = deflection[0] - self.left
+            deflection[1] = deflection[1] * scale_displacements + self.length // 10
         return deflections_transposed
-        # if platform_tile[1] == 1:
-        #     if platform_arr[0] < man_position < platform_arr[0] + 32:
-        #         add_element(from platform_arr[0] to man_position)
-        #         add_element(from man_position to platform_arr[0]+32)
-        #         man_node = find_node((man_position,0))
-        #         add_point_load(load on man_node)
-        #     else:
-        #         generate a normal element.
-        #
-        #     # Now make sure that if the man lands on a node, you just add the load there.
-        #     if platform_arr[0] == man_position:
-        #         man_node = find_node((platform_arr[0],0))
-        #         add_point_load(load on man_node)
-        # else if platform_arr == "2":
-        #     generate a normal element, but add a support to the start node.

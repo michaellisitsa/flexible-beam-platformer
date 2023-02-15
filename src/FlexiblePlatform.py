@@ -1,4 +1,6 @@
 import pygame
+from anastruct import SystemElements  # pyright: reportMissingTypeStubs=false
+from anastruct import Vertex
 
 
 class FlexiblePlatform(pygame.sprite.Sprite):
@@ -59,7 +61,21 @@ class FlexiblePlatform(pygame.sprite.Sprite):
         """Called when there is a collision with the hero.
         Initialize anastruct and geometry based on platform position
         Switches out the platform for the deflected shape."""
-        # Iterate over the array, including the next value.
+
+        # Initialize Anastruct
+        # Create a 50x50x1.6 G350 SHS
+        I_shs = 1.17e-7  # m^4
+        E_steel = 2e11  # N/m2
+        A_shs = 0.000303  # m^2
+
+        # Number of elements for post-processing
+        mesh = 10
+        ss = SystemElements(
+            mesh=mesh,
+            EI=I_shs * E_steel,
+            EA=E_steel * A_shs,
+        )
+
         # Create an element between every position
         for location, type in self.location_type:
             match type:

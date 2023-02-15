@@ -9,7 +9,8 @@
             "type": "python",
             "request": "launch",
             "console": "integratedTerminal",
-            "module": "src.${fileBasenameNoExtension}",
+            // "module": "src.${fileBasenameNoExtension}",
+            "module": "src.main",
             "justMyCode": true
         }
     ]

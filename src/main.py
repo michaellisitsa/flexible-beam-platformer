@@ -19,13 +19,11 @@ def update_fps():
     return fps_text
 
 
-display_surface = pygame.display.set_mode([960, 640])
+display_surface = pygame.display.set_mode([960 + 8 * 32, 640 + 128])
 
 # Set FPS and clock
 FPS = 60
 clock = pygame.time.Clock()
-
-man_location = 500
 
 # Create player group and object
 my_player_group = pygame.sprite.Group()  # type: ignore
@@ -100,11 +98,6 @@ while running == True:
         pygame.key.start_text_input()
         if event.type == pygame.QUIT:
             running = False
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_LEFT]:
-        man_location -= 10
-    if keys[pygame.K_RIGHT]:
-        man_location += 10
 
     display_surface.fill("white")
 

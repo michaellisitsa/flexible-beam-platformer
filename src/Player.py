@@ -66,10 +66,16 @@ class Player(pygame.sprite.Sprite):
         if collided_flexible_platforms:
             beam_center = collided_flexible_platforms[0].rect.centery
             if beam_center <= self.position.y:
-                deflections = collided_flexible_platforms[0].update(self.position.x)
+                deflections = collided_flexible_platforms[0].update(
+                    self.position.x + 32
+                )
                 if deflections:
                     deflection_index_at_player = bisect_left(
-                        [item[0] for item in deflections], self.position.x
+                        [
+                            item[0] + collided_flexible_platforms[0].left
+                            for item in deflections
+                        ],
+                        self.position.x,
                     )
                     # Cater for bisect_left returning index of the next empty index if it is off the list
                     # prevent list index out of range errors

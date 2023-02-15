@@ -1,6 +1,7 @@
 import pygame
 from anastruct import SystemElements  # pyright: reportMissingTypeStubs=false
 from anastruct import Vertex
+import numpy as np
 
 
 class FlexiblePlatform(pygame.sprite.Sprite):
@@ -43,19 +44,33 @@ class FlexiblePlatform(pygame.sprite.Sprite):
         # Property initial support positions.
         # Property section properties.
         # Doesn't need to initialize anastruct just yet.
-        self.get_deflection_position(self.left + 40)
 
     def update(self, *args: pygame.Surface, **kwargs: None):
         """Update the platform"""
-        # surface: pygame.Surface = args[0]
+        player_position = args[0]
         self.image.fill((0, 0, 0))
-        pass
-
-    # def get_vertices(weight, position):
-    """
-    params: The weight of hero who is located on the platform.
-    params: The position of the hero along the beam
-    """
+        try:
+            deflections = self.get_deflection_position(player_position)
+            pygame.draw.lines(
+                self.image,
+                (255, 0, 0),
+                False,
+                deflections,
+                width=6,
+            )
+        except:
+            # There are no forces or there was an error calculating deflection
+            # Draw undeflected beam
+            pygame.draw.lines(
+                self.image,
+                (255, 0, 0),
+                False,
+                [
+                    (location[0] - self.left, self.length // 10)
+                    for location in self.location_type
+                ],
+                width=6,
+            )
 
     def get_deflection_position(self, player_position):
         """Called when there is a collision with the hero.

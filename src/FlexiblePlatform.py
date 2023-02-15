@@ -76,31 +76,58 @@ class FlexiblePlatform(pygame.sprite.Sprite):
             EA=E_steel * A_shs,
         )
 
+        """Assign a point load to the extra node"""
+        player_load = 981  # N ( 100 kg * 9.81 N / kg )
+
         # Create an element between every position
         for location, type in self.location_type:
+            start_vertex = Vertex(location, 0)
+            end_vertex = Vertex(location + 32, 0)
+            if location < player_position < location + 32:
+                player_vertex = Vertex(player_position, 0)
+                pygame.draw.circle(
+                    self.image,
+                    (0, 255, 0),
+                    (player_position - self.left, self.length // 10),
+                    3,
+                )
+                ss.add_element(location=(start_vertex, player_vertex))
+                ss.add_element(
+                    location=(
+                        player_vertex,
+                        end_vertex,
+                    )
+                )
+                player_node = ss.find_node_id((player_position, 0))
+                ss.point_load(node_id=player_node, Fy=player_load)  # type:ignore
+            else:
+                ss.add_element(
+                    location=(
+                        Vertex(location, 0),
+                        Vertex(location + 32, 0),
+                    )
+                )
+            pygame.draw.circle(
+                self.image,
+                (0, 0, 255),
+                (location - self.left, self.length // 10),
+                3,
+            )
+            pygame.draw.circle(
+                self.image,
+                (0, 0, 255),
+                (location + 32 - self.left, self.length // 10),
+                3,
+            )
+
+            # Now make sure that if the man lands on a node, you just add the load there.
+            if location == player_position:
+                player_node = ss.find_node_id((location, 0))
+                ss.point_load(node_id=player_node, Fy=player_load)  # type:ignore
+
+            # Assign supports and draw icons
             match type:
-                case 1:
-                    if location < player_position < location + 32:
-                        pygame.draw.circle(
-                            self.image,
-                            (0, 255, 0),
-                            (player_position - self.left, self.length // 10),
-                            10,
-                        )
-                    pygame.draw.circle(
-                        self.image,
-                        (0, 0, 255),
-                        (location - self.left, self.length // 10),
-                        10,
-                    )
-                    pygame.draw.circle(
-                        self.image,
-                        (0, 0, 255),
-                        (location + 32 - self.left, self.length // 10),
-                        10,
-                    )
                 case 2:
-                    triangle_base = [[10, 10], [0, 20], [20, 20]]
                     pygame.draw.polygon(
                         self.image,
                         (0, 255, 255),
@@ -109,8 +136,11 @@ class FlexiblePlatform(pygame.sprite.Sprite):
                             [location - self.left - 10, self.length // 10 + 20],
                             [location - self.left + 10, self.length // 10 + 20],
                         ],
-                        2,
+                        0,
                     )
+                    start_node = ss.find_node_id(start_vertex)
+                    ss.add_support_hinged(node_id=start_node)
+
                 case 3:
                     pygame.draw.rect(
                         self.image,
@@ -121,11 +151,22 @@ class FlexiblePlatform(pygame.sprite.Sprite):
                             10,
                             20,
                         ),
-                        2,
+                        0,
                     )
+                    start_node = ss.find_node_id(start_vertex)
+                    ss.add_support_fixed(node_id=start_node)
                 case _:
                     pass
-            # if platform_tile[1] == 1:
+
+        ss.solve()
+        # Use internal plotting method
+        deflections = ss.plot_values.displacements(factor=0.005, linear=False)
+        deflections_transposed = np.transpose(np.array(deflections)).tolist()
+        for deflection in deflections_transposed:
+            deflection[0] = deflection[0]
+            deflection[1] = deflection[1] + self.length // 10
+        return deflections_transposed
+        # if platform_tile[1] == 1:
         #     if platform_arr[0] < man_position < platform_arr[0] + 32:
         #         add_element(from platform_arr[0] to man_position)
         #         add_element(from man_position to platform_arr[0]+32)

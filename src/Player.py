@@ -10,7 +10,7 @@ class Player(pygame.sprite.Sprite):
     # Kinematic constants
     HORIZONTAL_ACCELERATION = 2
     HORIZONTAL_FRICTION = 0.15
-    VERTICAL_ACCELERATION = 0.1  # Gravity
+    VERTICAL_ACCELERATION = 0.5  # Gravity
 
     def __init__(self, x: int, y: int, platform_tile_group: pygame.sprite.Group, flexible_platform_group: pygame.sprite.Group):  # type: ignore
         """Init the player"""

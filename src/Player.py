@@ -64,8 +64,8 @@ class Player(pygame.sprite.Sprite):
             self, self.flexible_platforms, False  # type:ignore
         )
         if collided_flexible_platforms:
-            beam_center = collided_flexible_platforms[0].rect.centery
-            if beam_center <= self.position.y:
+            beam_top = collided_flexible_platforms[0].rect.top
+            if beam_top <= self.position.y:
                 deflections = collided_flexible_platforms[0].update(
                     self.position.x + 32
                 )
@@ -85,11 +85,7 @@ class Player(pygame.sprite.Sprite):
                         deflection_at_player = deflections[deflection_index_at_player][
                             1
                         ]
-                    position_y = (
-                        beam_center
-                        + deflection_at_player
-                        - collided_flexible_platforms[0].length // 10
-                    )  # type:ignore
+                    position_y = beam_top + deflection_at_player  # type:ignore
                     if (
                         deflection_at_player
                         > collided_flexible_platforms[0].rect.height

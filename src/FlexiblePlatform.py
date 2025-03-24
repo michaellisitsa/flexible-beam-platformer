@@ -80,7 +80,7 @@ class FlexiblePlatform(pygame.sprite.Sprite):
 
         # Initialize Anastruct
         # Create a 50x50x1.6 G350 SHS
-        I_shs = 1.17e-7  # m^4
+        I_shs = 4.17e-7  # m^4
         E_steel = 2e11  # N/m2
         A_shs = 0.000303  # m^2
 

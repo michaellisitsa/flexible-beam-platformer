@@ -43,7 +43,7 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_RIGHT] and self.rect.right < surface.get_width():
             self.acceleration.x = Player.HORIZONTAL_ACCELERATION
         if keys[pygame.K_UP] and self.rect.top > 0:
-            self.position.y = 32
+            self.position.y -= 36
 
         # Calculate new kinematic values
         self.acceleration.x -= self.velocity.x * Player.HORIZONTAL_FRICTION
